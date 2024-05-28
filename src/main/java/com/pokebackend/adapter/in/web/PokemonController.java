@@ -3,10 +3,11 @@ package com.pokebackend.adapter.in.web;
 import com.pokebackend.application.service.PokemonService;
 import com.pokebackend.application.service.UserService;
 import com.pokebackend.domain.Pokemon;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/pokemons")
@@ -26,14 +27,16 @@ public class PokemonController {
     }
 
     @GetMapping("/public")
-    public ResponseEntity<List<Pokemon>> getAllPublicPokemons() {
-        List<Pokemon> pokemons = pokemonService.getAllPublicPokemons();
+    public ResponseEntity<Page<Pokemon>> getAllPublicPokemons(@RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Pokemon> pokemons = pokemonService.getAllPublicPokemons(pageable);
         return ResponseEntity.ok(pokemons);
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<Pokemon>> getUserPokemons(@RequestHeader("Authorization") String token) {
-        List<Pokemon> pokemons = pokemonService.getUserPokemons(token);
+    public ResponseEntity<Page<Pokemon>> getUserPokemons(@RequestHeader("Authorization") String token, @RequestParam(defaultValue = "0") int page, @RequestParam(defaultValue = "10") int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Pokemon> pokemons = pokemonService.getUserPokemons(token, pageable);
         return ResponseEntity.ok(pokemons);
     }
 

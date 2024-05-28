@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 
 import java.util.List;
 import java.util.Optional;
@@ -87,13 +91,16 @@ class PokemonServiceTest {
         Pokemon pokemon = new Pokemon();
         pokemon.setPublic(true);
 
-        when(pokemonRepository.findByIsPublic(true)).thenReturn(List.of(pokemon));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Pokemon> pokemonPage = new PageImpl<>(List.of(pokemon));
 
-        List<Pokemon> publicPokemons = pokemonService.getAllPublicPokemons();
+        when(pokemonRepository.findByIsPublic(true, pageable)).thenReturn(pokemonPage);
+
+        Page<Pokemon> publicPokemons = pokemonService.getAllPublicPokemons(pageable);
 
         assertNotNull(publicPokemons);
         assertFalse(publicPokemons.isEmpty());
-        assertTrue(publicPokemons.get(0).isPublic());
+        assertTrue(publicPokemons.getContent().get(0).isPublic());
     }
 
     @Test
@@ -106,13 +113,16 @@ class PokemonServiceTest {
         Pokemon pokemon = new Pokemon();
         pokemon.setUser(user);
 
-        when(pokemonRepository.findByUser(user)).thenReturn(List.of(pokemon));
+        Pageable pageable = PageRequest.of(0, 10);
+        Page<Pokemon> pokemonPage = new PageImpl<>(List.of(pokemon));
 
-        List<Pokemon> userPokemons = pokemonService.getUserPokemons(token);
+        when(pokemonRepository.findByUser(user, pageable)).thenReturn(pokemonPage);
+
+        Page<Pokemon> userPokemons = pokemonService.getUserPokemons(token, pageable);
 
         assertNotNull(userPokemons);
         assertFalse(userPokemons.isEmpty());
-        assertEquals(user, userPokemons.get(0).getUser());
+        assertEquals(user, userPokemons.getContent().get(0).getUser());
     }
 
     @Test
@@ -121,8 +131,10 @@ class PokemonServiceTest {
 
         when(userService.validateToken(token)).thenReturn(false);
 
+        Pageable pageable = PageRequest.of(0, 10);
+
         assertThrows(UnauthorizedException.class, () -> {
-            pokemonService.getUserPokemons(token);
+            pokemonService.getUserPokemons(token, pageable);
         });
     }
 
