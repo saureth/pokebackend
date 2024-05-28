@@ -2,7 +2,6 @@ package com.pokebackend.adapter.in.web;
 
 import com.pokebackend.application.service.UserService;
 import com.pokebackend.domain.exception.EmailAlreadyRegisteredException;
-import com.pokebackend.domain.exception.EmailPasswordMismatchException;
 import com.pokebackend.domain.exception.InvalidEmailException;
 import com.pokebackend.domain.exception.InvalidPasswordException;
 import org.springframework.http.HttpStatus;
@@ -24,16 +23,6 @@ public class UserController {
             userService.registerUser(email, password, firstName, lastName);
             return ResponseEntity.ok("User registered successfully.");
         } catch (InvalidEmailException | EmailAlreadyRegisteredException | InvalidPasswordException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
-
-    @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestParam String email, @RequestParam String password) {
-        try {
-            String token = userService.loginUser(email, password);
-            return ResponseEntity.ok(token);
-        } catch (InvalidEmailException | EmailPasswordMismatchException | InvalidPasswordException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }

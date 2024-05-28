@@ -21,13 +21,13 @@ public class UserService {
     private static final String PASSWORD_PATTERN =
             "^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#?\\]])(?=\\S+$).{10,}$";
     private static final Pattern pattern = Pattern.compile(PASSWORD_PATTERN);
-    private final Map<String, LocalDateTime> validTokens = new HashMap<>();
+    private final Map<String, TokenDetails> validTokens = new HashMap<>();
 
     public UserService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
-    public void registerUser(String email, String password, String firstName, String lastName) {
+    public String registerUser(String email, String password, String firstName, String lastName) {
         if (!isValidEmail(email)) {
             throw new InvalidEmailException("Invalid email address.");
         }
@@ -39,10 +39,11 @@ public class UserService {
         }
         User user = new User();
         user.setEmail(email);
-        user.setPassword(password);
+        user.setPassword(password); // En un entorno real, deberías hash la contraseña antes de guardarla.
         user.setFirstName(firstName);
         user.setLastName(lastName);
         userRepository.save(user);
+        return "User registered successfully.";
     }
 
     public String loginUser(String email, String password) {
@@ -60,9 +61,18 @@ public class UserService {
         if (!user.getPassword().equals(password)) {
             throw new EmailPasswordMismatchException("Email and password do not match.");
         }
-        String token = generateToken();
-        validTokens.put(token, LocalDateTime.now().plusMinutes(20));
+        String token = generateToken(user.getId());
+        validTokens.put(token, new TokenDetails(user.getId(), LocalDateTime.now().plusMinutes(20)));
         return token;
+    }
+
+    public User getUserFromToken(String token) {
+        if (!validateToken(token)) {
+            throw new RuntimeException("Invalid or expired token");
+        }
+        Long userId = validTokens.get(token).getUserId();
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
     private boolean isValidEmail(String email) {
@@ -73,16 +83,34 @@ public class UserService {
         return pattern.matcher(password).matches();
     }
 
-    private String generateToken() {
-        return UUID.randomUUID().toString();
+    private String generateToken(Long userId) {
+        return userId + "-" + UUID.randomUUID().toString();
     }
 
     public boolean validateToken(String token) {
-        LocalDateTime expiryTime = validTokens.get(token);
-        if (expiryTime == null || LocalDateTime.now().isAfter(expiryTime)) {
+        TokenDetails tokenDetails = validTokens.get(token);
+        if (tokenDetails == null || LocalDateTime.now().isAfter(tokenDetails.getExpiryTime())) {
             validTokens.remove(token);
             return false;
         }
         return true;
+    }
+
+    private static class TokenDetails {
+        private final Long userId;
+        private final LocalDateTime expiryTime;
+
+        public TokenDetails(Long userId, LocalDateTime expiryTime) {
+            this.userId = userId;
+            this.expiryTime = expiryTime;
+        }
+
+        public Long getUserId() {
+            return userId;
+        }
+
+        public LocalDateTime getExpiryTime() {
+            return expiryTime;
+        }
     }
 }
