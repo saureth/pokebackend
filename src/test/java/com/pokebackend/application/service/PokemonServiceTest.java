@@ -5,6 +5,7 @@ import com.pokebackend.domain.Pokemon;
 import com.pokebackend.domain.User;
 import com.pokebackend.domain.exception.InvalidItemAccessException;
 import com.pokebackend.domain.exception.ItemNotFoundException;
+import com.pokebackend.domain.exception.UnauthorizedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -45,6 +46,7 @@ class PokemonServiceTest {
 
         User user = new User();
         when(userService.getUserFromToken(token)).thenReturn(user);
+        when(userService.validateToken(token)).thenReturn(true);
 
         Pokemon pokemon = new Pokemon();
         pokemon.setName(name);
@@ -70,6 +72,17 @@ class PokemonServiceTest {
     }
 
     @Test
+    void testCreatePokemonInvalidToken() {
+        String token = "invalid-token";
+
+        when(userService.validateToken(token)).thenReturn(false);
+
+        assertThrows(UnauthorizedException.class, () -> {
+            pokemonService.createPokemon(token, "Pikachu", "Electric", 100, 50, 40, true);
+        });
+    }
+
+    @Test
     void testGetAllPublicPokemons() {
         Pokemon pokemon = new Pokemon();
         pokemon.setPublic(true);
@@ -88,6 +101,7 @@ class PokemonServiceTest {
         String token = "valid-token";
         User user = new User();
         when(userService.getUserFromToken(token)).thenReturn(user);
+        when(userService.validateToken(token)).thenReturn(true);
 
         Pokemon pokemon = new Pokemon();
         pokemon.setUser(user);
@@ -99,6 +113,17 @@ class PokemonServiceTest {
         assertNotNull(userPokemons);
         assertFalse(userPokemons.isEmpty());
         assertEquals(user, userPokemons.get(0).getUser());
+    }
+
+    @Test
+    void testGetUserPokemonsInvalidToken() {
+        String token = "invalid-token";
+
+        when(userService.validateToken(token)).thenReturn(false);
+
+        assertThrows(UnauthorizedException.class, () -> {
+            pokemonService.getUserPokemons(token);
+        });
     }
 
     @Test
@@ -116,6 +141,7 @@ class PokemonServiceTest {
         pokemon.setUser(user);
 
         when(userService.getUserFromToken(token)).thenReturn(user);
+        when(userService.validateToken(token)).thenReturn(true);
         when(pokemonRepository.findById(pokemonId)).thenReturn(Optional.of(pokemon));
         when(pokemonRepository.save(any(Pokemon.class))).thenReturn(pokemon);
 
@@ -135,6 +161,7 @@ class PokemonServiceTest {
         Long pokemonId = 1L;
 
         when(userService.getUserFromToken(token)).thenReturn(new User());
+        when(userService.validateToken(token)).thenReturn(true);
         when(pokemonRepository.findById(pokemonId)).thenReturn(Optional.empty());
 
         assertThrows(ItemNotFoundException.class, () -> {
@@ -156,10 +183,22 @@ class PokemonServiceTest {
         pokemon.setUser(differentUser);
 
         when(userService.getUserFromToken(token)).thenReturn(user);
+        when(userService.validateToken(token)).thenReturn(true);
         when(pokemonRepository.findById(pokemonId)).thenReturn(Optional.of(pokemon));
 
         assertThrows(InvalidItemAccessException.class, () -> {
             pokemonService.updatePokemon(token, pokemonId, "Pikachu", "Electric", 100, 50, 40);
+        });
+    }
+
+    @Test
+    void testUpdatePokemonInvalidToken() {
+        String token = "invalid-token";
+
+        when(userService.validateToken(token)).thenReturn(false);
+
+        assertThrows(UnauthorizedException.class, () -> {
+            pokemonService.updatePokemon(token, 1L, "Pikachu", "Electric", 100, 50, 40);
         });
     }
 
@@ -172,6 +211,7 @@ class PokemonServiceTest {
         pokemon.setUser(user);
 
         when(userService.getUserFromToken(token)).thenReturn(user);
+        when(userService.validateToken(token)).thenReturn(true);
         when(pokemonRepository.findById(pokemonId)).thenReturn(Optional.of(pokemon));
 
         pokemonService.deletePokemon(token, pokemonId);
@@ -185,6 +225,7 @@ class PokemonServiceTest {
         Long pokemonId = 1L;
 
         when(userService.getUserFromToken(token)).thenReturn(new User());
+        when(userService.validateToken(token)).thenReturn(true);
         when(pokemonRepository.findById(pokemonId)).thenReturn(Optional.empty());
 
         assertThrows(ItemNotFoundException.class, () -> {
@@ -206,10 +247,22 @@ class PokemonServiceTest {
         pokemon.setUser(differentUser);
 
         when(userService.getUserFromToken(token)).thenReturn(user);
+        when(userService.validateToken(token)).thenReturn(true);
         when(pokemonRepository.findById(pokemonId)).thenReturn(Optional.of(pokemon));
 
         assertThrows(InvalidItemAccessException.class, () -> {
             pokemonService.deletePokemon(token, pokemonId);
+        });
+    }
+
+    @Test
+    void testDeletePokemonInvalidToken() {
+        String token = "invalid-token";
+
+        when(userService.validateToken(token)).thenReturn(false);
+
+        assertThrows(UnauthorizedException.class, () -> {
+            pokemonService.deletePokemon(token, 1L);
         });
     }
 }
