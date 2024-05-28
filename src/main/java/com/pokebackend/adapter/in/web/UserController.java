@@ -27,14 +27,4 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
-
-    @PostMapping("/login")
-    public ResponseEntity<String> loginUser(@RequestParam String email, @RequestParam String password) {
-        try {
-            String token = userService.loginUser(email, password);
-            return ResponseEntity.ok(token);
-        } catch (InvalidEmailException | EmailPasswordMismatchException | InvalidPasswordException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
-        }
-    }
 }
