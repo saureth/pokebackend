@@ -6,9 +6,10 @@ import com.pokebackend.domain.User;
 import com.pokebackend.domain.exception.InvalidItemAccessException;
 import com.pokebackend.domain.exception.ItemNotFoundException;
 import com.pokebackend.domain.exception.UnauthorizedException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -34,13 +35,13 @@ public class PokemonService {
         return pokemonRepository.save(pokemon);
     }
 
-    public List<Pokemon> getAllPublicPokemons() {
-        return pokemonRepository.findByIsPublic(true);
+    public Page<Pokemon> getAllPublicPokemons(Pageable pageable) {
+        return pokemonRepository.findByIsPublic(true, pageable);
     }
 
-    public List<Pokemon> getUserPokemons(String token) {
+    public Page<Pokemon> getUserPokemons(String token, Pageable pageable) {
         User user = validateTokenAndGetUser(token);
-        return pokemonRepository.findByUser(user);
+        return pokemonRepository.findByUser(user, pageable);
     }
 
     public Pokemon updatePokemon(String token, Long pokemonId, String name, String type, int hp, int attack, int defense) {
