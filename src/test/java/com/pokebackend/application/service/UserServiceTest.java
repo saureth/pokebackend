@@ -32,11 +32,8 @@ class UserServiceTest {
         String password = "ValidPassword1!";
         String firstName = "John";
         String lastName = "Doe";
-
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-
         String result = userService.registerUser(email, password, firstName, lastName);
-
         assertEquals("User registered successfully.", result);
         verify(userRepository, times(1)).save(any(User.class));
     }
@@ -47,11 +44,8 @@ class UserServiceTest {
         String password = "ValidPassword1!";
         String firstName = null;
         String lastName = null;
-
         when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-
         String result = userService.registerUser(email, password, firstName, lastName);
-
         assertEquals("User registered successfully.", result);
         verify(userRepository, times(1)).save(any(User.class));
     }
@@ -62,9 +56,7 @@ class UserServiceTest {
         String password = "ValidPassword1!";
         String firstName = "John";
         String lastName = "Doe";
-
         String result = userService.registerUser(email, password, firstName, lastName);
-
         assertEquals("Invalid email address.", result);
         verify(userRepository, never()).save(any(User.class));
     }
@@ -75,11 +67,8 @@ class UserServiceTest {
         String password = "ValidPassword1!";
         String firstName = "John";
         String lastName = "Doe";
-
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(new User()));
-
         String result = userService.registerUser(email, password, firstName, lastName);
-
         assertEquals("Email is already registered.", result);
         verify(userRepository, never()).save(any(User.class));
     }
@@ -90,35 +79,66 @@ class UserServiceTest {
         String password = "invalid";
         String firstName = "John";
         String lastName = "Doe";
-
         String result = userService.registerUser(email, password, firstName, lastName);
-
         assertEquals("Password must contain at least 10 characters, one lowercase letter, one uppercase letter and one of the following characters: !, @, #, ? or ].", result);
         verify(userRepository, never()).save(any(User.class));
     }
 
     @Test
-    void findUserByEmail_success() {
+    void loginUser_success() {
         String email = "test@example.com";
+        String password = "ValidPassword1!";
         User user = new User();
         user.setEmail(email);
-
+        user.setPassword(password);
         when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
-
-        Optional<User> foundUser = userRepository.findByEmail(email);
-
-        assertTrue(foundUser.isPresent());
-        assertEquals(email, foundUser.get().getEmail());
+        String token = userService.loginUser(email, password);
+        assertNotNull(token);
+        assertFalse(token.equals("Invalid email address."));
+        assertFalse(token.equals("Email is not registered."));
+        assertFalse(token.equals("Invalid password."));
+        assertFalse(token.equals("Email and password do not match."));
     }
 
     @Test
-    void findUserByEmail_notFound() {
-        String email = "test@example.com";
-
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-
-        Optional<User> foundUser = userRepository.findByEmail(email);
-
-        assertFalse(foundUser.isPresent());
+    void loginUser_invalidEmail() {
+        String email = "invalidemail";
+        String password = "ValidPassword1!";
+        String result = userService.loginUser(email, password);
+        assertEquals("Invalid email address.", result);
     }
+
+    @Test
+    void loginUser_emailNotRegistered() {
+        String email = "test@example.com";
+        String password = "ValidPassword1!";
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        String result = userService.loginUser(email, password);
+        assertEquals("Email is not registered.", result);
+    }
+
+    @Test
+    void loginUser_invalidPassword() {
+        String email = "test@example.com";
+        String password = "invalid";
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword(password);
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        String result = userService.loginUser(email, password);
+        assertEquals("Invalid password.", result);
+    }
+
+    @Test
+    void loginUser_passwordMismatch() {
+        String email = "test@example.com";
+        String password = "ValidPassword1!";
+        User user = new User();
+        user.setEmail(email);
+        user.setPassword("DifferentPassword1!");
+        when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
+        String result = userService.loginUser(email, password);
+        assertEquals("Email and password do not match.", result);
+    }
+
 }
