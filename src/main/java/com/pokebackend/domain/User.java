@@ -24,8 +24,6 @@ public class User {
     @Column(name = "lastName")
     private String lastName;
 
-    // Getters y setters
-
     public Long getId() {
         return id;
     }

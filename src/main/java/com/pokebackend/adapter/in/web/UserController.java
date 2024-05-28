@@ -2,7 +2,6 @@ package com.pokebackend.adapter.in.web;
 
 import com.pokebackend.application.service.UserService;
 import com.pokebackend.domain.exception.EmailAlreadyRegisteredException;
-import com.pokebackend.domain.exception.EmailPasswordMismatchException;
 import com.pokebackend.domain.exception.InvalidEmailException;
 import com.pokebackend.domain.exception.InvalidPasswordException;
 import org.springframework.http.HttpStatus;
