@@ -5,6 +5,7 @@ import com.pokebackend.domain.Pokemon;
 import com.pokebackend.domain.User;
 import com.pokebackend.domain.exception.InvalidItemAccessException;
 import com.pokebackend.domain.exception.ItemNotFoundException;
+import com.pokebackend.domain.exception.UnauthorizedException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -21,7 +22,7 @@ public class PokemonService {
     }
 
     public Pokemon createPokemon(String token, String name, String type, int hp, int attack, int defense, boolean isPublic) {
-        User user = userService.getUserFromToken(token);
+        User user = validateTokenAndGetUser(token);
         Pokemon pokemon = new Pokemon();
         pokemon.setName(name);
         pokemon.setType(type);
@@ -38,20 +39,13 @@ public class PokemonService {
     }
 
     public List<Pokemon> getUserPokemons(String token) {
-        User user = userService.getUserFromToken(token);
+        User user = validateTokenAndGetUser(token);
         return pokemonRepository.findByUser(user);
     }
 
     public Pokemon updatePokemon(String token, Long pokemonId, String name, String type, int hp, int attack, int defense) {
-        User user = userService.getUserFromToken(token);
-        Optional<Pokemon> optionalPokemon = pokemonRepository.findById(pokemonId);
-        if (optionalPokemon.isEmpty()) {
-            throw new ItemNotFoundException("Pokemon not found");
-        }
-        Pokemon pokemon = optionalPokemon.get();
-        if (!pokemon.getUser().equals(user)) {
-            throw new InvalidItemAccessException("You are not allowed to update this Pokemon");
-        }
+        User user = validateTokenAndGetUser(token);
+        Pokemon pokemon = findPokemonByIdAndValidateUser(pokemonId, user);
         pokemon.setName(name);
         pokemon.setType(type);
         pokemon.setHp(hp);
@@ -61,15 +55,27 @@ public class PokemonService {
     }
 
     public void deletePokemon(String token, Long pokemonId) {
-        User user = userService.getUserFromToken(token);
+        User user = validateTokenAndGetUser(token);
+        Pokemon pokemon = findPokemonByIdAndValidateUser(pokemonId, user);
+        pokemonRepository.delete(pokemon);
+    }
+
+    private User validateTokenAndGetUser(String token) {
+        if (!userService.validateToken(token)) {
+            throw new UnauthorizedException("Invalid token");
+        }
+        return userService.getUserFromToken(token);
+    }
+
+    private Pokemon findPokemonByIdAndValidateUser(Long pokemonId, User user) {
         Optional<Pokemon> optionalPokemon = pokemonRepository.findById(pokemonId);
         if (optionalPokemon.isEmpty()) {
             throw new ItemNotFoundException("Pokemon not found");
         }
         Pokemon pokemon = optionalPokemon.get();
         if (!pokemon.getUser().equals(user)) {
-            throw new InvalidItemAccessException("You are not allowed to delete this Pokemon");
+            throw new InvalidItemAccessException("You are not allowed to access this Pokemon");
         }
-        pokemonRepository.delete(pokemon);
+        return pokemon;
     }
 }
