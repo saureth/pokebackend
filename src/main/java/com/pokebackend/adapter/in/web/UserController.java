@@ -1,6 +1,10 @@
 package com.pokebackend.adapter.in.web;
 
 import com.pokebackend.application.service.UserService;
+import com.pokebackend.domain.exception.EmailAlreadyRegisteredException;
+import com.pokebackend.domain.exception.EmailPasswordMismatchException;
+import com.pokebackend.domain.exception.InvalidEmailException;
+import com.pokebackend.domain.exception.InvalidPasswordException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -15,16 +19,22 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(
-            @RequestParam String email,
-            @RequestParam String password,
-            @RequestParam(required = false) String firstName,
-            @RequestParam(required = false) String lastName) {
-        String result = userService.registerUser(email, password, firstName, lastName);
-        if (result.equals("User registered successfully.")) {
-            return ResponseEntity.ok(result);
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(result);
+    public ResponseEntity<String> registerUser(@RequestParam String email, @RequestParam String password, @RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName) {
+        try {
+            userService.registerUser(email, password, firstName, lastName);
+            return ResponseEntity.ok("User registered successfully.");
+        } catch (InvalidEmailException | EmailAlreadyRegisteredException | InvalidPasswordException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
+        }
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> loginUser(@RequestParam String email, @RequestParam String password) {
+        try {
+            String token = userService.loginUser(email, password);
+            return ResponseEntity.ok(token);
+        } catch (InvalidEmailException | EmailPasswordMismatchException | InvalidPasswordException e) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
         }
     }
 }

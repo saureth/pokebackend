@@ -2,6 +2,10 @@ package com.pokebackend.application.service;
 
 import com.pokebackend.adapter.out.persistence.UserRepository;
 import com.pokebackend.domain.User;
+import com.pokebackend.domain.exception.EmailAlreadyRegisteredException;
+import com.pokebackend.domain.exception.EmailPasswordMismatchException;
+import com.pokebackend.domain.exception.InvalidEmailException;
+import com.pokebackend.domain.exception.InvalidPasswordException;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
@@ -23,39 +27,38 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public String registerUser(String email, String password, String firstName, String lastName) {
+    public void registerUser(String email, String password, String firstName, String lastName) {
         if (!isValidEmail(email)) {
-            return "Invalid email address.";
+            throw new InvalidEmailException("Invalid email address.");
         }
         if (userRepository.findByEmail(email).isPresent()) {
-            return "Email is already registered.";
+            throw new EmailAlreadyRegisteredException("Email is already registered.");
         }
         if (!isValidPassword(password)) {
-            return "Password must contain at least 10 characters, one lowercase letter, one uppercase letter and one of the following characters: !, @, #, ? or ].";
+            throw new InvalidPasswordException("Password must contain at least 10 characters, one lowercase letter, one uppercase letter and one of the following characters: !, @, #, ? or ].");
         }
         User user = new User();
         user.setEmail(email);
-        user.setPassword(password); // En un entorno real, deberías hash la contraseña antes de guardarla.
+        user.setPassword(password);
         user.setFirstName(firstName);
         user.setLastName(lastName);
         userRepository.save(user);
-        return "User registered successfully.";
     }
 
     public String loginUser(String email, String password) {
         if (!isValidEmail(email)) {
-            return "Invalid email address.";
+            throw new InvalidEmailException("Invalid email address.");
         }
         Optional<User> userOptional = userRepository.findByEmail(email);
         if (userOptional.isEmpty()) {
-            return "Email is not registered.";
+            throw new EmailPasswordMismatchException("Email and password do not match.");
         }
         User user = userOptional.get();
         if (!isValidPassword(password)) {
-            return "Invalid password.";
+            throw new InvalidPasswordException("Invalid password.");
         }
         if (!user.getPassword().equals(password)) {
-            return "Email and password do not match.";
+            throw new EmailPasswordMismatchException("Email and password do not match.");
         }
         String token = generateToken();
         validTokens.put(token, LocalDateTime.now().plusMinutes(20));
