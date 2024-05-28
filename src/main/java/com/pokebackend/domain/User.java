@@ -15,7 +15,6 @@ public class User {
     private String firstName;  // Opcional
     private String lastName;   // Opcional
 
-    // Getters y setters
     public Long getId() {
         return id;
     }
