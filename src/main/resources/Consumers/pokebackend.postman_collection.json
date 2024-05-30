@@ -159,7 +159,7 @@
 			"response": []
 		},
 		{
-			"name": "Create pokemon",
+			"name": "Modify pokemon",
 			"request": {
 				"auth": {
 					"type": "noauth"
@@ -217,7 +217,7 @@
 			"response": []
 		},
 		{
-			"name": "Modify Pokemon",
+			"name": "Create Pokemon",
 			"request": {
 				"auth": {
 					"type": "noauth"
