@@ -1,0 +1,139 @@
+RDS:  pokedb -> admin adminadmin
+elastic ip: 18.118.249.23
+ip publica actual: 181.51.32.175
+
+ec2 ubuntu conectado con putty:
+sudo apt update
+sudo apt install openjdk-17-jdk
+con filezilla pasar el jar al ec2 (app.jar quedó)
+ngnix proxy para que se redirija el tráfico desde el puerto 80 (HTTP) al que usa spring.
+sudo apt install nginx
+sudo nano /etc/nginx/sites-available/app
+
+
+May 29 03:50:25 ip-172-31-27-179 systemd[1]: /etc/systemd/system/app.service:6: Invalid user/group name or numeric ID: ubuntu ExecStart= java -jar -Dspring.profiles.active=prod -Dserver.port=8080 /home/ubuntu/app/app.jar
+
+
+CREATE SCHEMA `pokedb` DEFAULT CHARACTER SET utf8 ;
+
+CREATE TABLE USER (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    firstName VARCHAR(255),
+    lastName VARCHAR(255),
+    UNIQUE KEY unique_email (email)
+);
+
+#prefill:
+insert into USER (email,password, firstName, lastName) values ("saureth001@gmail.com","santiagoSanmartin123!","Santiago","Sanmartin");
+INSERT INTO USER (email, password, firstName, lastName) VALUES
+('john.doe@example.com', 'Password123!', 'John', 'Doe'),
+('jane.smith@example.com', 'Password123!', 'Jane', 'Smith'),
+('alice.jones@example.com', 'Password123!', 'Alice', 'Jones'),
+('bob.brown@example.com', 'Password123!', 'Bob', 'Brown'),
+('charlie.davis@example.com', 'Password123!', 'Charlie', 'Davis'),
+('diana.evans@example.com', 'Password123!', 'Diana', 'Evans'),
+('frank.garcia@example.com', 'Password123!', 'Frank', 'Garcia'),
+('grace.harris@example.com', 'Password123!', 'Grace', 'Harris'),
+('henry.lee@example.com', 'Password123!', 'Henry', 'Lee'),
+('isabella.martin@example.com', 'Password123!', 'Isabella', 'Martin');
+
+CREATE TABLE pokemon (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    type VARCHAR(255) NOT NULL,
+    hp INT NOT NULL,
+    attack INT NOT NULL,
+    defense INT NOT NULL,
+    user_id BIGINT NOT NULL,
+    isPublic BOOLEAN NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES user(id)
+);
+
+
+#testing the endpoints:
+curl -X POST "http://localhost:8080/api/register?email=test@example.com&password=TestPassword1!"
+
+curl -X POST "http://localhost:8080/api/login" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -d "email=testuser@example.com&password=ValidPassword1!"
+(Guardar el token, se va a necesitar) 
+
+curl -X POST "http://localhost:8080/api/pokemons/create" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -H "Authorization: <TOKEN>" \
+     -d "name=Pikachu&type=Electric&hp=35&attack=55&defense=40&isPublic=true"
+(Usar el token, ya que este endpoint está "protegido")
+
+curl -X PUT "http://localhost:8080/api/pokemons/update/<POKEMON_ID>" \
+     -H "Content-Type: application/x-www-form-urlencoded" \
+     -H "Authorization: <TOKEN>" \
+     -d "name=Raichu&type=Electric&hp=60&attack=90&defense=55"
+(Usar el token, y un pokemon que exista y tenga ID en db)
+
+curl -X DELETE "http://localhost:8080/api/pokemons/delete/<POKEMON_ID>" \
+     -H "Authorization: <TOKEN>"
+(Usar el token, y un pokemon que exista y tenga ID en db)
+
+curl -X GET "http://localhost:8080/api/pokemons/public?page=0&size=10" -H "Content-Type: application/json"
+
+curl -X GET "http://localhost:8080/api/pokemons/user?page=0&size=10" -H "Authorization: your-token-here" -H "Content-Type: application/json"
+
+loguearse en aws ecr por consola
+aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 220813225832.dkr.ecr.us-east-2.amazonaws.com
+
+crear repo en ecr
+aws ecr create-repository --repository-name pokebackend --region us-east-2
+
+empujar a ecr con contenedor docker
+docker build -t pokebackend .
+docker tag pokebackend:latest 220813225832.dkr.ecr.us-east-2.amazonaws.com/pokebackend:latest
+docker push 220813225832.dkr.ecr.us-east-2.amazonaws.com/pokebackend:latest
+
+--> latest: digest: sha256:38ec4bcdbc0f9791637dd73c351101d47c9f0451944919384540488fb9637826 size: 1371
+
+Pasos para Configurar y Desplegar en ECS
+1. Crear un Clúster ECS
+Ve a la consola de AWS ECS aquí y selecciona "Clusters".
+Haz clic en "Create Cluster".
+Asigna un nombre a tu clúster, por ejemplo, pokebackend-cluster.
+Haz clic en "Create".
+2. Crear una Definición de Tarea
+Ve a la consola de AWS ECS y selecciona "Task Definitions".
+Haz clic en "Create new Task Definition".
+Selecciona "FARGATE" y haz clic en "Next step".
+Asigna un nombre a tu definición de tarea, por ejemplo, pokebackend-task.
+En "Task execution role", selecciona una rol existente o crea una nueva rol con los permisos necesarios (ecsTaskExecutionRole).
+En "Task size", selecciona 0.25 vCPU y 0.5 GB de memoria para mantenerte en el nivel gratuito.
+Haz clic en "Add container".
+Configura los detalles del contenedor:
+Container name: pokebackend-container
+Image: 220813225832.dkr.ecr.us-east-2.amazonaws.com/pokebackend:latest
+Port mappings: 8080 (Container port) - 8080 (Host port)
+Haz clic en "Add" y luego en "Create".
+3. Crear un Servicio ECS
+Ve a la consola de AWS ECS y selecciona tu clúster.
+Haz clic en "Create" en la sección "Services".
+Selecciona "FARGATE" y la definición de tarea que creaste (pokebackend-task).
+Asigna un nombre al servicio, por ejemplo, pokebackend-service.
+En "Number of tasks", pon 1.
+En "Cluster VPC", selecciona la VPC que estás utilizando.
+En "Subnets", selecciona al menos un subnet público.
+En "Security groups", selecciona o crea un grupo de seguridad que permita el tráfico HTTP (puerto 80) y el puerto 8080.
+Selecciona "Assign public IP" como "ENABLED".
+Haz clic en "Next step" y luego en "Create service".
+4. Configurar una ALB (Application Load Balancer)
+Ve a la consola de AWS EC2 y selecciona "Load Balancers".
+Haz clic en "Create Load Balancer" y selecciona "Application Load Balancer".
+Asigna un nombre al ALB, selecciona los subnets y elige el grupo de seguridad adecuado.
+Configura un Target Group:
+Nombre: pokebackend-target-group
+Target type: IP
+Protocol: HTTP
+Port: 8080
+Añade el Target Group al Load Balancer.
+Ve a tu clúster ECS y edita el servicio para añadir el Target Group a tu servicio.
+Comprobar el Despliegue
+Ve a la consola de AWS ECS y selecciona tu clúster y servicio para verificar que la tarea esté corriendo.
+Abre tu navegador y navega a la URL del Load Balancer para acceder a tu aplicación desplegada.

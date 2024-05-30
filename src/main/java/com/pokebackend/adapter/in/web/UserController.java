@@ -1,5 +1,6 @@
 package com.pokebackend.adapter.in.web;
 
+import com.pokebackend.adapter.in.web.dto.UserRegistrationRequest;
 import com.pokebackend.application.service.UserService;
 import com.pokebackend.domain.exception.EmailAlreadyRegisteredException;
 import com.pokebackend.domain.exception.InvalidEmailException;
@@ -18,9 +19,9 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<String> registerUser(@RequestParam String email, @RequestParam String password, @RequestParam(required = false) String firstName, @RequestParam(required = false) String lastName) {
+    public ResponseEntity<String> registerUser(@RequestBody UserRegistrationRequest request) {
         try {
-            userService.registerUser(email, password, firstName, lastName);
+            userService.registerUser(request.getEmail(), request.getPassword(), request.getFirstName(), request.getLastName());
             return ResponseEntity.ok("User registered successfully.");
         } catch (InvalidEmailException | EmailAlreadyRegisteredException | InvalidPasswordException e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());

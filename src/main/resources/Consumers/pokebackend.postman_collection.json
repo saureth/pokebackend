@@ -1,0 +1,316 @@
+{
+	"info": {
+		"_postman_id": "4d5d473e-6d7b-44a3-8eda-13eee43552f0",
+		"name": "pokebackend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get public pokemons",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/pokemons/public?page=0&size=10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"pokemons",
+						"public"
+					],
+					"query": [
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "size",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Random pokemon from pokeapi (no need of token)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/pokemons/random",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"pokemons",
+						"random"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Register new user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n    \"email\": \"example@example.com\",\r\n    \"password\": \"Password123!!!\",\r\n    \"firstName\": \"John\",\r\n    \"lastName\": \"Doe\"\r\n}\r\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/register",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"register"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "john.doe@example.com",
+							"disabled": true
+						},
+						{
+							"key": "password",
+							"value": "Password123!",
+							"disabled": true
+						},
+						{
+							"key": "firstName",
+							"value": "John",
+							"disabled": true
+						},
+						{
+							"key": "lastName",
+							"value": "Doe",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get pokemon from user",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "2-b1e2378f-f4cf-430c-bcd3-b7549f181c6f",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/pokemons/user?page=0&size=10",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"pokemons",
+						"user"
+					],
+					"query": [
+						{
+							"key": "Authorization",
+							"value": "2-7576a457-8f53-48eb-8f1e-1d96c9a813cf",
+							"disabled": true
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						},
+						{
+							"key": "page",
+							"value": "0"
+						},
+						{
+							"key": "size",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create pokemon",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "2-b1e2378f-f4cf-430c-bcd3-b7549f181c6f",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/pokemons/update/49?name=Raichu&type=Electric&hp=60&attack=90&defense=55",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"pokemons",
+						"update",
+						"49"
+					],
+					"query": [
+						{
+							"key": "Authorization",
+							"value": "2-7576a457-8f53-48eb-8f1e-1d96c9a813cf",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Raichu"
+						},
+						{
+							"key": "type",
+							"value": "Electric"
+						},
+						{
+							"key": "hp",
+							"value": "60"
+						},
+						{
+							"key": "attack",
+							"value": "90"
+						},
+						{
+							"key": "defense",
+							"value": "55"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Modify Pokemon",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Authorization",
+						"value": "2-b1e2378f-f4cf-430c-bcd3-b7549f181c6f",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "http://localhost:8080/api/pokemons/create?name=Pikachu&type=Electric&hp=35&attack=55&defense=40&isPublic=true",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"pokemons",
+						"create"
+					],
+					"query": [
+						{
+							"key": "Authorization",
+							"value": "2-7576a457-8f53-48eb-8f1e-1d96c9a813cf",
+							"disabled": true
+						},
+						{
+							"key": "name",
+							"value": "Pikachu"
+						},
+						{
+							"key": "type",
+							"value": "Electric"
+						},
+						{
+							"key": "hp",
+							"value": "35"
+						},
+						{
+							"key": "attack",
+							"value": "55"
+						},
+						{
+							"key": "defense",
+							"value": "40"
+						},
+						{
+							"key": "isPublic",
+							"value": "true"
+						},
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Login with user",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/login?email=john.doe@example.com&password=Password123!",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"login"
+					],
+					"query": [
+						{
+							"key": "email",
+							"value": "john.doe@example.com"
+						},
+						{
+							"key": "password",
+							"value": "Password123!"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

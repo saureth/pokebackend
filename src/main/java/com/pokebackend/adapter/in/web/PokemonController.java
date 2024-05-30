@@ -8,6 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
+
+import java.util.Random;
 
 @RestController
 @RequestMapping("/api/pokemons")
@@ -50,5 +53,15 @@ public class PokemonController {
     public ResponseEntity<Void> deletePokemon(@RequestHeader("Authorization") String token, @PathVariable Long id) {
         pokemonService.deletePokemon(token, id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/random")
+    public ResponseEntity<String> getRandomPokemon() {
+        RestTemplate restTemplate = new RestTemplate();
+        Random random = new Random();
+        int randomId = random.nextInt(898) + 1;
+        String url = "https://pokeapi.co/api/v2/pokemon/" + randomId;
+        String response = restTemplate.getForObject(url, String.class);
+        return ResponseEntity.ok(response);
     }
 }

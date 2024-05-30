@@ -7,8 +7,9 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Column;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jdk.jfr.Name;
 
-@Entity
+@Entity(name = "POKEMON")
 public class Pokemon {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
